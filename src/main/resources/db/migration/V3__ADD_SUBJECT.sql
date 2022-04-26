@@ -1,0 +1,2 @@
+-- insert into "user_list" (id_users, login, first_name, second_name, password, image_url, age,role)
+--     values (1,'admin','alex','bobrov','admin', 'none' ,23,'admin');
