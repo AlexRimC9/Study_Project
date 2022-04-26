@@ -58,8 +58,16 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public ResponseEntity<?> register(@RequestParam String username, @RequestParam String password) throws Exception {
+    @PutMapping("/user/survey")
+    public ResponseEntity<?> survey(@RequestParam String firstName, @RequestParam String secondName, @RequestParam int age, @RequestParam String imageUrl){
+        URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/user/survey").toUriString());
+        userService.survey(firstName,secondName,age,imageUrl);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @PostMapping(value = "/register")
+    public ResponseEntity<?> register(@RequestParam String username, @RequestParam String password){
         URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/register").toUriString());
         return ResponseEntity.created(uri).body(userService.register(username,password));
         }
@@ -99,6 +107,7 @@ public class UserController {
         }
     }
 }
+
     @Data
     class RoleToUserForm{
         private String username;

@@ -1,16 +1,16 @@
 package com.example.study_project.Service.User;
 
-import com.example.study_project.Entity.Role;
+ import com.example.study_project.Entity.Role;
 import com.example.study_project.Entity.User;
 import com.example.study_project.Rep.RoleRep;
 import com.example.study_project.Rep.UserRep;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+ import org.springframework.security.core.context.SecurityContextHolder;
+ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,19 +51,35 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     @Override
     public User register(String username, String password){
-        log.info("Новый пользователь {} зарегистрировался в базе данных", username);
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(passwordEncoder.encode(password));
-         return userRep.save(user);
+        if (userRep.findByUsername(username) == null) {
+            log.info("Новый пользователь {} зарегистрировался в базе данных", username);
+            User user = new User();
+            user.setUsername(username);
+            user.setPassword(passwordEncoder.encode(password));
+            user.setRole(new ArrayList<>());
+            Role role = roleRep.findByRole("ROLE_USER");
+            log.info("Добавили роль {} для пользователя {}", role.getRole(), username);
+            user.getRole().add(role);
+            return userRep.save(user);
+        }else{
+            log.info("Пользователь с логином {} уже сущетсвует",username);
+            return null;
+        }
     }
 
 
-//    @Override
-//    public User survey(User user) {
-//        log.info("Добавление данных пользователя {} прошло успешно", user.getUsername());
-//
-//    }
+    @Override
+    public User survey(String firstName, String secondName, int age, String imageUrl) {
+
+        log.info("Добавление данных пользователя  прошло успешно");
+        User user = userRep.findByUsername( (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        user.setFirstName(firstName);
+        user.setSecondName(secondName);
+        user.setAge(age);
+        user.setImageUrl(imageUrl);
+
+        return userRep.save(user);
+    }
 
     @Override
     public Role saveRole(Role role) {

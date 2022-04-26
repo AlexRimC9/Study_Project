@@ -38,10 +38,10 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
 
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        String login = request.getParameter("login");
+        String username = request.getParameter("username");
         String password = request.getParameter("password");
-        log.info("Login is: {}",login); log.info("Password is: {}",password);
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(login,password);
+        log.info("Login is: {}",username); log.info("Password is: {}",password);
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username,password);
         return authenticationManager.authenticate(authenticationToken);
     }
 
@@ -61,8 +61,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
                 .withIssuer(request.getRequestURL().toString())
                 .withClaim("role",user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
                 .sign(algorithm);
-//        response.setHeader("accessToken",accessToken);
-//        response.setHeader("refreshToken",refreshToken);
         Map<String,String> tokens = new HashMap<>();
         tokens.put("access_token",accessToken);
         tokens.put("refresh_token",refreshToken);
