@@ -58,8 +58,8 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @RequestMapping(value = "/register", method = RequestMethod.POST)
-    public ResponseEntity<?> register(@RequestParam String username, @RequestParam String password) throws Exception {
+    @PostMapping(value = "/register")
+    public ResponseEntity<?> register(@RequestParam String username, @RequestParam String password){
         URI uri = URI.create(ServletUriComponentsBuilder.fromCurrentContextPath().path("/api/register").toUriString());
         return ResponseEntity.created(uri).body(userService.register(username,password));
         }
