@@ -33,10 +33,16 @@ public class User  {
     @Column
     private String password;
     @Column
-    private Integer age;
+    private String age;
 
     @Column
     private String imageUrl;
+
+    @Column
+    private String language;
+
+    @Column
+    private String city;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(

@@ -1,10 +1,11 @@
 package com.example.study_project.Service.User;
 
+ import com.example.study_project.Entity.Passwords;
  import com.example.study_project.Entity.Role;
 import com.example.study_project.Entity.User;
 import com.example.study_project.Rep.RoleRep;
 import com.example.study_project.Rep.UserRep;
-import lombok.RequiredArgsConstructor;
+ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
  import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +15,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.study_project.Rep.PasswordsRep;
+
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,6 +30,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final UserRep userRep;
     private final RoleRep roleRep;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordsRep passwordsRep;
 
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
@@ -54,12 +58,17 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         if (userRep.findByUsername(username) == null) {
             log.info("Новый пользователь {} зарегистрировался в базе данных", username);
             User user = new User();
+            Passwords passwords = new Passwords();
             user.setUsername(username);
             user.setPassword(passwordEncoder.encode(password));
+            passwords.setUsername(username);
+            passwords.setPassword(passwordEncoder.encode(password));
+            passwords.setUsed(true);
             user.setRole(new ArrayList<>());
             Role role = roleRep.findByRole("ROLE_USER");
             log.info("Добавили роль {} для пользователя {}", role.getRole(), username);
             user.getRole().add(role);
+            passwordsRep.save(passwords);
             return userRep.save(user);
         }else{
             log.info("Пользователь с логином {} уже сущетсвует",username);
@@ -67,9 +76,31 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         }
     }
 
+    @Override
+    public String changePassword(String oldPassword, String newPassword) {
+
+        User user = userRep.findByUsername((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        Passwords caller = passwordsRep.findByUsernameAndUsed(user.getUsername(),true);
+        if (passwordEncoder.encode(oldPassword).equals(caller.getPassword())) {
+            List<Passwords> passwordList = passwordsRep.findAll();
+            for (int i = 0; i < passwordList.size(); i++)
+                if(passwordEncoder.encode(newPassword).equals(passwordList.get(i).getPassword())){
+                    return "Такой пароль уже использовался ранее, ведите свой старый пароль.";
+                }
+            caller.setUsed(false);
+            Passwords passwords = new Passwords();
+            passwords.setUsername(user.getUsername());
+            passwords.setPassword(passwordEncoder.encode(newPassword));
+            passwords.setUsed(true);
+            passwordsRep.save(passwords);
+            return "Вы изменили пароль";
+        }else{
+            return "Вы ввели свой нынешний пароль, введите новый";
+        }
+    }
 
     @Override
-    public User survey(String firstName, String secondName, int age, String imageUrl) {
+    public User survey(String firstName, String secondName, String age, String imageUrl, String language, String city) {
 
         log.info("Добавление данных пользователя  прошло успешно");
         User user = userRep.findByUsername( (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
@@ -77,6 +108,8 @@ public class UserServiceImpl implements UserService, UserDetailsService {
         user.setSecondName(secondName);
         user.setAge(age);
         user.setImageUrl(imageUrl);
+        user.setLanguage(language);
+        user.setCity(city);
 
         return userRep.save(user);
     }

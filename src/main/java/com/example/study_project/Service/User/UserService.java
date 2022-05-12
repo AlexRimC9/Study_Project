@@ -8,7 +8,9 @@ import java.util.List;
 public interface UserService {
     abstract User saveUser(User user);
 
-    User survey(String firstName, String secondName, int age, String imageUrl);
+    String changePassword(String oldPassword, String newPassword);
+
+    User survey(String firstName, String secondName, String age, String imageUrl,String language, String city);
 
     Role saveRole(Role role);
 
@@ -19,5 +21,8 @@ public interface UserService {
     List<User> getUsers();
 
     User register(String username,String password);
+
+
+
 
 }
